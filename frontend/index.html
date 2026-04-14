@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>SENA TECH — Control de Equipos</title>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+<div class="bg-anim"><div class="bg-grid"></div></div>
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     LOGIN
+══════════════════════════════════════ -->
+<div class="page active" id="page-login">
+  <div class="login-logo">
+    <div class="badge">● Sistema activo 2026</div>
+    <h1>SENA <span>TECH</span></h1>
+    <p>Sistema inteligente de registro de equipos</p>
+  </div>
+  <div class="login-form">
+    <div class="login-role-tabs">
+      <button class="role-tab active user"  onclick="selectLoginRole('user',  this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>Usuario
+      </button>
+      <button class="role-tab guard" onclick="selectLoginRole('guard', this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Vigilante
+      </button>
+      <button class="role-tab admin" onclick="selectLoginRole('admin', this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Admin
+      </button>
+    </div>
+    <div class="field"><label>Cédula / Usuario</label><input type="text" id="login-user" placeholder="Ingresa tu cédula"/></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••"/></div>
+    <button class="btn-login user-btn" id="btn-ingresar" onclick="doLogin()">INGRESAR</button>
+    <div class="login-hint">
+      ¿Primera vez? <a onclick="showRegisterModal()">Crear cuenta usuario</a>
+      &nbsp;·&nbsp;
+      <a class="guard-link" onclick="showRegistroVigilanteModal()">Registrarme como vigilante</a>
+    </div>
+    <div class="login-hint" style="margin-top:6px">
+      <a onclick="showRecuperarModal()" style="color:var(--muted)">¿Olvidaste tu contraseña?</a>
+    </div>
+  </div>
+  <div class="login-footer">© 2026 SENA TECH APP · v3.0</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     DASHBOARD USUARIO
+══════════════════════════════════════ -->
+<div class="page" id="page-user">
+  <div class="dash-header">
+    <div class="dash-logo">SENA <span>TECH</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="dash-user-info"><div class="dname" id="user-dname">—</div><div class="drole user">Usuario</div></div>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
+  </div>
+  <div class="dash-nav" id="user-nav">
+    <button class="nav-btn active" onclick="userTab('home',     this)" id="unav-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+    </button>
+    <button class="nav-btn" onclick="userTab('equipos',  this)" id="unav-equipos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Equipos
+    </button>
+    <button class="nav-btn" onclick="userTab('qr',       this)" id="unav-qr">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 17h3v3M14 20h3M20 14v3"/></svg>Mi QR
+    </button>
+    <button class="nav-btn" onclick="userTab('clave',    this)" id="unav-clave">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Clave
+    </button>
+    <button class="nav-btn" onclick="userTab('historial',this)" id="unav-historial">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Historial
+    </button>
+  </div>
+  <div class="dash-content">
+
+    <!-- INICIO -->
+    <div class="dash-section active" id="usec-home">
+      <div class="profile-chip"><div class="avatar" id="user-avatar">--</div>
+        <div><div class="pname" id="user-chip-name">—</div><div class="psub" id="user-chip-sub">—</div></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num cyan-num"  id="u-stat-total">0</div><div class="stat-lbl">Movimientos</div></div>
+        <div class="stat-card"><div class="stat-num green-num" id="u-stat-entry">0</div><div class="stat-lbl">Entradas</div></div>
+        <div class="stat-card"><div class="stat-num red-num"   id="u-stat-exit">0</div><div class="stat-lbl">Salidas</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Último movimiento</div>
+        <div id="u-last-move"><div class="empty"><div class="empty-icon">🕐</div><p>Sin movimientos aún.</p></div></div>
+      </div>
+      <div class="card" style="background:linear-gradient(135deg,rgba(0,245,255,.04),rgba(124,58,237,.04))">
+        <div class="card-title">⚡ Acceso rápido</div>
+        <div class="btn-row">
+          <button class="btn btn-cyan"   onclick="userTab('qr',    document.getElementById('unav-qr'))">Ver QR</button>
+          <button class="btn btn-purple" onclick="userTab('clave', document.getElementById('unav-clave'))">Clave dinámica</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EQUIPOS -->
+    <div class="dash-section" id="usec-equipos">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+        <div class="sec-label" style="margin-bottom:0">Mis dispositivos</div>
+        <button class="btn btn-cyan btn-sm" onclick="abrirFormEquipo(null)">+ Agregar</button>
+      </div>
+      <div id="equipos-lista"><div class="empty"><div class="empty-icon">🖥️</div><p>No tienes equipos aún.</p></div></div>
+    </div>
+
+    <!-- MI QR (rotativo) -->
+    <div class="dash-section" id="usec-qr">
+      <div id="qr-noequipo" style="display:none">
+        <div class="empty"><div class="empty-icon">🖥️</div><p>Primero registra un equipo.</p><br>
+          <button class="btn btn-cyan btn-sm" onclick="userTab('equipos',document.getElementById('unav-equipos'))">Registrar equipo</button>
+        </div>
+      </div>
+      <div id="qr-view">
+        <div class="field"><select id="qr-equipo-sel" onchange="onChangeQREquipo(this)"></select></div>
+        <div class="qr-box">
+          <div id="qr-output"></div>
+          <div class="qr-meta" style="margin-top:11px">
+            <div class="qr-meta-item"><div class="qv" id="qm-tipo">—</div><div class="ql">Tipo</div></div>
+            <div class="qr-meta-item"><div class="qv" id="qm-serial">—</div><div class="ql">Serial</div></div>
+            <div class="qr-meta-item"><div class="qv" id="qm-color">—</div><div class="ql">Color</div></div>
+          </div>
+        </div>
+        <p id="qr-countdown" style="text-align:center;font-size:.68rem;color:var(--muted);margin-bottom:12px">⟳ QR se renueva en 60s</p>
+        <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-bottom:14px;line-height:1.5">
+          🔒 El QR cambia cada minuto para mayor seguridad
+        </p>
+      </div>
+    </div>
+
+    <!-- CLAVE DINÁMICA -->
+    <div class="dash-section" id="usec-clave">
+      <div class="clave-box">
+        <div class="clave-label">🔑 Tu clave dinámica</div>
+        <div class="clave-numero" id="clave-numero">
+          <span class="clave-digit">-</span><span class="clave-digit">-</span>
+          <span class="clave-digit">-</span><span class="clave-digit">-</span>
+          <span class="clave-digit">-</span><span class="clave-digit">-</span>
+        </div>
+        <div class="clave-timer-row">
+          <div class="clave-timer-bar"><div class="clave-timer-fill" id="clave-fill" style="width:100%"></div></div>
+          <div class="clave-timer-txt" id="clave-timer-txt">60s</div>
+        </div>
+        <div class="clave-sub">
+          Muestra esta clave al vigilante junto con tu serial del equipo.<br>
+          Cambia automáticamente cada 60 segundos.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">💡 ¿Cómo usarla?</div>
+        <p style="font-size:.73rem;color:var(--muted);line-height:1.7">
+          1. El vigilante te pide la clave cuando el QR no funciona.<br>
+          2. Dile también el número de serie de tu equipo.<br>
+          3. El vigilante ingresa cédula + serial + clave en su panel.<br>
+          4. El sistema registra automáticamente la entrada o salida.
+        </p>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="dash-section" id="usec-historial">
+      <div class="filter-row">
+        <div class="chip active" onclick="filterUserLog('all',    this)">Todos</div>
+        <div class="chip"        onclick="filterUserLog('entrada',this)">Entradas</div>
+        <div class="chip"        onclick="filterUserLog('salida', this)">Salidas</div>
+      </div>
+      <div id="user-log-list" class="log-list"><div class="empty"><div class="empty-icon">📋</div><p>Sin movimientos.</p></div></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     DASHBOARD VIGILANTE
+══════════════════════════════════════ -->
+<div class="page" id="page-guard">
+  <div class="dash-header">
+    <div class="dash-logo">SENA <span>TECH</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="dash-user-info"><div class="dname" id="guard-dname">Vigilante</div><div class="drole guard">Vigilante</div></div>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
+  </div>
+  <div class="dash-nav">
+    <button class="nav-btn active guard-nav" onclick="guardTab('scan',     this)" id="gnav-scan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>Escanear
+    </button>
+    <button class="nav-btn" onclick="guardTab('historial', this)" id="gnav-hist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Historial
+    </button>
+    <button class="nav-btn" onclick="guardTab('exportar',  this)" id="gnav-export">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar
+    </button>
+  </div>
+  <div class="dash-content">
+
+    <!-- ESCANEAR -->
+    <div class="dash-section active" id="gsec-scan">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num green-num" id="g-stat-entry">0</div><div class="stat-lbl">Entradas hoy</div></div>
+        <div class="stat-card"><div class="stat-num red-num"   id="g-stat-exit">0</div><div class="stat-lbl">Salidas hoy</div></div>
+        <div class="stat-card"><div class="stat-num cyan-num"  id="g-stat-total">0</div><div class="stat-lbl">Total</div></div>
+      </div>
+
+      <!-- Selector QR vs Clave -->
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn btn-purple modo-btn active" style="flex:1" onclick="setGuardModo('qr',   this)">📷 Escanear QR</button>
+        <button class="btn btn-ghost  modo-btn"        style="flex:1" onclick="setGuardModo('clave', this)">🔑 Ingresar Clave</button>
+      </div>
+
+      <!-- Panel QR -->
+      <div id="guard-qr-panel">
+        <div id="guard-scanner-idle">
+          <div class="card" style="text-align:center;padding:28px 18px">
+            <div style="font-size:2.8rem;margin-bottom:12px">📷</div>
+            <div style="font-family:var(--head);font-size:.72rem;letter-spacing:2px;color:#a78bfa;margin-bottom:8px">LISTO PARA ESCANEAR</div>
+            <p style="font-size:.73rem;color:var(--muted);margin-bottom:18px;line-height:1.6">Activa la cámara y apunta al QR del usuario</p>
+            <button class="btn btn-purple" onclick="startGuardScanner()">▶ Activar Cámara</button>
+          </div>
+        </div>
+        <div id="guard-scanner-active" style="display:none">
+          <div id="guard-qr-reader"></div>
+          <div class="scanner-pulse">● Buscando código QR...</div>
+          <button class="btn btn-ghost" style="margin-top:8px" onclick="stopGuardScanner()">✕ Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Panel Clave Dinámica -->
+      <div id="guard-clave-panel" style="display:none">
+        <div class="card">
+          <div class="card-title purple">🔑 Verificar con clave dinámica</div>
+          <div class="field"><label>Cédula del usuario *</label><input type="text" id="gc-cedula" placeholder="Número de cédula"/></div>
+          <div class="field"><label>Serial del equipo *</label><input type="text" id="gc-serial" placeholder="Ej: SVC123XYZ"/></div>
+          <div class="field"><label>Clave dinámica (6 dígitos) *</label>
+            <input type="text" id="gc-clave" placeholder="000000" maxlength="6" inputmode="numeric"
+              style="font-size:1.3rem;letter-spacing:6px;text-align:center;font-family:var(--head)"/>
+          </div>
+          <button class="btn btn-purple" id="btn-verificar-clave" onclick="verificarClave()">✓ Verificar y Registrar</button>
+        </div>
+        <p style="font-size:.68rem;color:var(--muted);text-align:center;line-height:1.5">
+          El usuario debe mostrarte su clave de 6 dígitos activa.<br>La clave expira cada 60 segundos.
+        </p>
+      </div>
+
+      <div id="guard-scan-result" style="display:none"></div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="dash-section" id="gsec-historial">
+      <div class="search-box"><input type="text" id="g-search" placeholder="Buscar nombre, serial..." oninput="loadGuardHistorial()"/></div>
+      <div class="filter-row">
+        <div class="chip active" onclick="filterGuardLog('all',     this)">Todos</div>
+        <div class="chip"        onclick="filterGuardLog('entrada', this)">Entradas</div>
+        <div class="chip"        onclick="filterGuardLog('salida',  this)">Salidas</div>
+        <div class="chip"        onclick="filterGuardLog('hoy',     this)">Hoy</div>
+      </div>
+      <div id="guard-log-list" class="log-list"><div class="empty"><div class="empty-icon">📋</div><p>Sin registros.</p></div></div>
+    </div>
+
+    <!-- EXPORTAR -->
+    <div class="dash-section" id="gsec-exportar">
+      <div class="export-card"><div class="export-icon">📊</div><div class="export-title">EXPORTAR CSV</div>
+        <div class="export-sub">Historial completo para Excel o Google Sheets</div>
+        <button class="btn btn-cyan" onclick="exportCSV()">⬇ Descargar CSV</button>
+      </div>
+      <div class="export-card"><div class="export-icon">🖨️</div><div class="export-title">REPORTE DEL DÍA</div>
+        <div class="export-sub">Reporte HTML imprimible de hoy</div>
+        <button class="btn btn-purple" onclick="exportDayReport()">📄 Generar Reporte</button>
+      </div>
+      <div class="card"><div class="card-title purple">⚠ Zona de datos</div>
+        <p style="font-size:.73rem;color:var(--muted);margin-bottom:13px">Eliminar todo el historial. No se puede deshacer.</p>
+        <button class="btn btn-ghost" onclick="clearAll()" style="border-color:var(--red);color:var(--red)">🗑 Limpiar historial</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     DASHBOARD ADMIN
+══════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div class="dash-header">
+    <div class="dash-logo">SENA <span>TECH</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="dash-user-info"><div class="dname" id="admin-dname">Admin</div><div class="drole admin">Administrador</div></div>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
+  </div>
+  <div class="dash-nav">
+    <button class="nav-btn active admin-nav" onclick="adminTab('pendientes', this)" id="anav-pend">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Pendientes
+    </button>
+    <button class="nav-btn" onclick="adminTab('vigilantes', this)" id="anav-vig">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Vigilantes
+    </button>
+    <button class="nav-btn" onclick="adminTab('historial',  this)" id="anav-hist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Historial
+    </button>
+  </div>
+  <div class="dash-content">
+    <div class="dash-section active" id="asec-pendientes">
+      <div class="card-title" style="margin-bottom:13px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span style="color:var(--orange)">SOLICITUDES DE VIGILANTES</span>
+      </div>
+      <div id="admin-pendientes-list"><div class="loading-row"><span class="spinner"></span></div></div>
+    </div>
+    <div class="dash-section" id="asec-vigilantes">
+      <div class="card-title" style="margin-bottom:13px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        TODOS LOS VIGILANTES
+      </div>
+      <div id="admin-vigilantes-list"><div class="loading-row"><span class="spinner"></span></div></div>
+    </div>
+    <div class="dash-section" id="asec-historial">
+      <div id="admin-log-list" class="log-list"><div class="loading-row"><span class="spinner"></span></div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MODAL: CREAR CUENTA USUARIO ══ -->
+<div class="modal-overlay" id="modal-registro">
+  <div class="modal-box">
+    <div class="modal-header"><div class="modal-title">CREAR CUENTA USUARIO</div><button class="modal-close" onclick="hideModal()">✕</button></div>
+    <div class="field"><label>Nombre completo *</label><input type="text" id="reg-name" placeholder="Tu nombre"/></div>
+    <div class="field"><label>Cédula *</label><input type="text" id="reg-cedula" placeholder="Número de cédula"/></div>
+    <div class="field"><label>Rol</label>
+      <select id="reg-rol"><option value="Aprendiz">Aprendiz SENA</option><option value="Instructor">Instructor</option><option value="Empleado">Empleado</option><option value="Visitante">Visitante</option></select>
+    </div>
+    <div class="field"><label>Contraseña *</label><input type="password" id="reg-pass" placeholder="Mínimo 4 caracteres"/></div>
+    <div class="divider"></div>
+    <div class="field"><label>Pregunta de seguridad *</label>
+      <select id="reg-pregunta">
+        <option value="¿Nombre de tu mascota?">¿Nombre de tu mascota?</option>
+        <option value="¿Ciudad donde naciste?">¿Ciudad donde naciste?</option>
+        <option value="¿Nombre de tu colegio?">¿Nombre de tu colegio?</option>
+        <option value="¿Apodo de la infancia?">¿Apodo de la infancia?</option>
+        <option value="¿Nombre de tu mejor amigo?">¿Nombre de tu mejor amigo?</option>
+      </select>
+    </div>
+    <div class="field"><label>Respuesta *</label><input type="text" id="reg-respuesta" placeholder="Tu respuesta (no la olvides)"/></div>
+    <button class="btn btn-cyan" id="btn-crear-cuenta" onclick="registerNewUser()">Crear cuenta</button>
+  </div>
+</div>
+
+
+<!-- ══ MODAL: REGISTRO VIGILANTE ══ -->
+<div class="modal-overlay" id="modal-reg-vigilante">
+  <div class="modal-box">
+    <div class="modal-header"><div class="modal-title" style="color:#a78bfa">SOLICITUD VIGILANTE</div><button class="modal-close" onclick="hideModal('modal-reg-vigilante')">✕</button></div>
+    <p style="font-size:.72rem;color:var(--muted);margin-bottom:16px;line-height:1.5">
+      Tu solicitud quedará <strong style="color:var(--yellow)">pendiente</strong> hasta que el administrador la apruebe.
+    </p>
+    <div class="field"><label>Nombre completo *</label><input type="text" id="rv-name" placeholder="Tu nombre"/></div>
+    <div class="field"><label>Cédula *</label><input type="text" id="rv-cedula" placeholder="Número de cédula"/></div>
+    <div class="field"><label>Contraseña *</label><input type="password" id="rv-pass" placeholder="Mínimo 4 caracteres"/></div>
+    <div class="divider"></div>
+    <div class="field"><label>Pregunta de seguridad *</label>
+      <select id="rv-pregunta">
+        <option value="¿Nombre de tu mascota?">¿Nombre de tu mascota?</option>
+        <option value="¿Ciudad donde naciste?">¿Ciudad donde naciste?</option>
+        <option value="¿Nombre de tu colegio?">¿Nombre de tu colegio?</option>
+        <option value="¿Apodo de la infancia?">¿Apodo de la infancia?</option>
+        <option value="¿Nombre de tu mejor amigo?">¿Nombre de tu mejor amigo?</option>
+      </select>
+    </div>
+    <div class="field"><label>Respuesta *</label><input type="text" id="rv-respuesta" placeholder="Tu respuesta"/></div>
+    <button class="btn btn-purple" id="btn-reg-vigilante" onclick="registerVigilante()">Enviar solicitud</button>
+  </div>
+</div>
+
+
+<!-- ══ MODAL: RECUPERAR CONTRASEÑA ══ -->
+<div class="modal-overlay" id="modal-recuperar">
+  <div class="modal-box">
+    <div class="modal-header"><div class="modal-title">RECUPERAR CONTRASEÑA</div><button class="modal-close" onclick="cerrarRecuperar()">✕</button></div>
+    <div class="step-ind">
+      <div class="step-dot active" id="sdot1">1</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="sdot2">2</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="sdot3">✓</div>
+    </div>
+
+    <!-- Paso 1: Ingresar cédula -->
+    <div id="rec-paso1">
+      <p style="font-size:.73rem;color:var(--muted);margin-bottom:14px">Ingresa tu cédula para buscar tu pregunta de seguridad.</p>
+      <div class="field"><label>Tu cédula *</label><input type="text" id="rec-cedula" placeholder="Número de cédula"/></div>
+      <button class="btn btn-cyan" id="btn-rec-p1" onclick="recPaso1()">Continuar →</button>
+    </div>
+
+    <!-- Paso 2: Responder y nueva contraseña -->
+    <div id="rec-paso2" style="display:none">
+      <div class="card" style="margin-bottom:14px;padding:12px 14px;background:rgba(0,245,255,.04)">
+        <div style="font-size:.62rem;color:var(--muted);margin-bottom:4px">Tu pregunta de seguridad:</div>
+        <div style="font-size:.82rem;font-weight:600" id="rec-pregunta-txt">—</div>
+      </div>
+      <div class="field"><label>Tu respuesta *</label><input type="text" id="rec-respuesta" placeholder="Responde tal como la registraste"/></div>
+      <div class="divider"></div>
+      <div class="field"><label>Nueva contraseña *</label><input type="password" id="rec-nueva-pass" placeholder="Mínimo 4 caracteres"/></div>
+      <div class="field"><label>Confirmar contraseña *</label><input type="password" id="rec-confirmar-pass" placeholder="Repite la contraseña"/></div>
+      <button class="btn btn-cyan" id="btn-rec-p2" onclick="recPaso2()">Cambiar contraseña</button>
+    </div>
+
+    <!-- Paso 3: Éxito -->
+    <div id="rec-paso3" style="display:none">
+      <div class="success-screen">
+        <div class="big-icon">🔓</div>
+        <h2>CONTRASEÑA CAMBIADA</h2>
+        <p>Tu contraseña fue actualizada exitosamente.<br>Ya puedes ingresar con tu nueva contraseña.</p>
+        <button class="btn btn-cyan" onclick="cerrarRecuperar()">Ir al login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MODAL: AGREGAR / EDITAR EQUIPO ══ -->
+<div class="modal-overlay" id="modal-equipo">
+  <div class="modal-box">
+    <div class="modal-header"><div class="modal-title" id="modal-equipo-title">AGREGAR EQUIPO</div><button class="modal-close" onclick="cerrarFormEquipo()">✕</button></div>
+    <div class="field"><label>Nombre del equipo *</label><input type="text" id="eq-nombre" placeholder="Ej: Portátil de Juan"/></div>
+    <div class="form-grid">
+      <div class="field"><label>Tipo *</label>
+        <select id="eq-tipo"><option value="Portátil">💻 Portátil</option><option value="Computadora">🖥️ Computadora</option><option value="Tablet">📱 Tablet</option></select>
+      </div>
+      <div class="field"><label>Marca *</label><input type="text" id="eq-marca" placeholder="Ej: Dell"/></div>
+    </div>
+    <div class="field"><label>Número de serie *</label><input type="text" id="eq-serial" placeholder="Ej: SVC123XYZ"/></div>
+    <div class="field"><label>Modelo</label><input type="text" id="eq-modelo" placeholder="Ej: Inspiron 15"/></div>
+    <div class="field"><label>Color</label>
+      <div class="color-grid" id="color-grid">
+        <div class="color-opt selected" data-color="Plata"  style="background:#b0b8c8"></div>
+        <div class="color-opt"          data-color="Negro"  style="background:#1a1a2e;border:1px solid #444"></div>
+        <div class="color-opt"          data-color="Blanco" style="background:#f0f0f0;border:1px solid #ccc"></div>
+        <div class="color-opt"          data-color="Gris"   style="background:#607080"></div>
+        <div class="color-opt"          data-color="Azul"   style="background:#1d4ed8"></div>
+        <div class="color-opt"          data-color="Rojo"   style="background:#b91c1c"></div>
+        <div class="color-opt"          data-color="Dorado" style="background:#b7860b"></div>
+        <div class="color-opt"          data-color="Verde"  style="background:#15803d"></div>
+      </div>
+    </div>
+    <button class="btn btn-cyan" id="btn-guardar-equipo" onclick="guardarEquipo()">Guardar</button>
+  </div>
+</div>
+
+
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/usuario.js"></script>
+<script src="js/vigilante.js"></script>
+</body>
+</html>
